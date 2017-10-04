@@ -39,7 +39,8 @@ namespace DotNetTest
 
         private void btnLeitura_Click(object sender, EventArgs e)
         {
-            var data = FilterData();
+            string tipoFiltro = cbxFilterType.SelectedItem?.ToString();
+            var data = FilterData(tipoFiltro);
             Task task = new Task(() =>
             {
                 var folder = "C:\\ArquivosGerados\\";
@@ -48,14 +49,20 @@ namespace DotNetTest
                 writeTask.Wait();
                 writeTask.Result.OnFail(this, (ctx, ex) =>
                 {
-                    MessageBox.Show($"Não foi possível criar o arquivo '{file}', ocorreram os seguintes erros:\n{ex.Message}", "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    this.BeginInvoke(new Action(() =>
+                    {
+                        MessageBox.Show($"Não foi possível criar o arquivo '{file}', ocorreram os seguintes erros:\n{ex.Message}", "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }));
                     return false;
                 }).OnSuccess((ctx, result) =>
                 {
-                    MessageBox.Show($"O arquivo '{file}' foi criado com sucesso", "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    this.BeginInvoke(new Action(() =>
+                    {
+                        MessageBox.Show($"O arquivo '{file}' foi criado com sucesso", "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }));
                     Process.Start(folder);
                     return result;
-                });                
+                });
             });
             task.Start();
         }
@@ -63,8 +70,9 @@ namespace DotNetTest
         private void btnPopularGrid_Click(object sender, EventArgs e)
         {
             int age = 0;
+            string tipoFiltro = cbxFilterType.SelectedItem?.ToString();
             int.TryParse(txtAge.Text, out age);
-            dataGridView1.DataSourceAsync(FilterData());
+            dataGridView1.DataSourceAsync(TryHelper.TryAsync(this, (frm) => FilterData(tipoFiltro).Result));
         }
 
         private void LoadFileHandler()
@@ -111,14 +119,15 @@ namespace DotNetTest
             return this;
         }
 
-        private Task<DataTable> FilterData()
+        private Task<DataTable> FilterData(string tipoFiltro)
         {
             int age = 0;
             int.TryParse(txtAge.Text, out age);
-            return FileHandler.Read().FilterAsync(
-                new FilterAge().Column("DTNASC").Is(cbxFilterType.SelectedItem?.ToString()).Than(age).Build(),
-                ColumnFilter?.Build()
-            );
+            return FileHandler.Read()
+                    .ThrowAsync(this)
+                    .OnSuccess((frm, dataSource) => {                    
+                        return dataSource.FilterAsync(new FilterAge().Column("DTNASC").Is(tipoFiltro).Than(age).Build(), ColumnFilter?.Build());
+                    });
         }
     }
 }

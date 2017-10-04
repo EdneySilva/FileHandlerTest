@@ -64,9 +64,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\ParseColumnException.cs" />
     <Compile Include="Extensions\DataTableHelper.cs" />
     <Compile Include="Extensions\FileHandlerHelper.cs" />
     <Compile Include="Extensions\GridViewHelper.cs" />
+    <Compile Include="Extensions\ParseRowException.cs" />
     <Compile Include="Extensions\StringFormat.cs" />
     <Compile Include="Extensions\TableCollection.cs" />
     <Compile Include="Extensions\TryHelper.cs" />

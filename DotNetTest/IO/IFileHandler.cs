@@ -16,9 +16,9 @@ namespace DotNetTest.IO
 
         Try<Exception, IFileHandler> Open(string fileName);
 
-        DataTable Read();
+        Try<Exception, DataTable> Read();
 
-        Task<DataTable> ReadAsync();
+        Task<Try<Exception,DataTable>> ReadAsync();
 
         Task<Try<Exception, bool>> WriteAllDataAsync(string path, Task<DataTable> dataSourceAsync);
     }

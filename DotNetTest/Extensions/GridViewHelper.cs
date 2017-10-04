@@ -10,6 +10,29 @@ namespace DotNetTest.Extensions
 {
     public static class GridViewHelper
     {
+        public static void DataSourceAsync<T>(this DataGridView grid, Task<Try<Exception, T>> asyncDataSource)
+        {
+            Task runner = new Task(() =>
+            {
+                asyncDataSource.Result.OnFail(grid, (ctx, ex) =>
+                {
+                    ctx.BeginInvoke(new Action(() =>
+                    {
+                        MessageBox.Show(ex.Message, "Ops! Ocorreu um erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }));
+                    return false;
+                }).OnSuccess((ctx, result) =>
+                {
+                    ctx.BeginInvoke(new Action(() =>
+                    {
+                        ctx.DataSource = result; ;
+                        ctx.Refresh();
+                    }));
+                    return true;
+                });
+            });
+            runner.Start();
+        }
         public static void DataSourceAsync<T>(this DataGridView grid, Task<T> asyncDataSource)
         {
             Task runner = new Task(() =>

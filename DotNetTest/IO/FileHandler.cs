@@ -34,7 +34,7 @@ namespace DotNetTest.IO
                 this.Parser = Settings.Get<IParser>();
                 this.FileName = fileName;
                 Assert(ExecutionOrder.FileIsOpenning, validators);
-                Lines = File.ReadAllLines(fileName, Encoding.Default);                
+                Lines = File.ReadAllLines(fileName, Encoding.Default);
                 return ctx;
             });
         }
@@ -50,17 +50,21 @@ namespace DotNetTest.IO
             throw new InvalidOperationException(erros.Aggregate((seed, value) => seed += "\n" + value));
         }
 
-        public DataTable Read()
+        public Try<Exception, DataTable> Read()
         {
-            var validators = Settings.Get<IEnumerable<IParsingValidator>>().ToArray();
-            return Parser.Run(Lines, validators).AsDataTable();
+            return TryHelper.Try(this, (ctx) =>
+            {
+                throw new Exception("Teste");
+                var validators = Settings.Get<IEnumerable<IParsingValidator>>().ToArray();
+                return Parser.Run(Lines, validators).AsDataTable();
+            });
         }
 
-        public Task<DataTable> ReadAsync()
+        public Task<Try<Exception, DataTable>> ReadAsync()
         {
-            Task<DataTable> task = new Task<DataTable>(() =>
+            Task<Try<Exception, DataTable>> task = new Task<Try<Exception, DataTable>>(() =>
             {
-                return this.Read();                
+                return this.Read();
             });
             task.Start();
             return task;
@@ -71,10 +75,12 @@ namespace DotNetTest.IO
             OutputDirectory = path;
             var task = new Task<Try<Exception, bool>>(() =>
             {
-                dataSourceAsync.Wait();
-                var datasource = dataSourceAsync.Result;
                 return TryHelper.Try(this, (ctx) =>
                 {
+                    dataSourceAsync.Wait();
+                    var datasource = dataSourceAsync.Result;
+                    if (datasource.Rows.Count == 0)
+                        return false;
                     var validators = Settings.Get<IEnumerable<IValidator>>();
                     Assert(ExecutionOrder.FileIsWritting, validators);
                     StringBuilder text = new StringBuilder();

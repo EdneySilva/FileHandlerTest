@@ -15,16 +15,24 @@ namespace DotNetTest.Extensions
             return collection
                 .Select(s =>
                 {
-                    var @string = s;
-                    Row newRow = new Row(header);
-                    foreach (var column in columns)
+                    try
                     {
-                        var value = @string.Substring(column.StartIndex, column.EndIndex);
-                        @string = @string.Substring(column.EndIndex);
-                        newRow.AddValue(column.Name, value);
+                        var @string = s;
+                        Row newRow = new Row(header);
+                        foreach (var column in columns)
+                        {
+                            var value = @string.Substring(column.StartIndex, column.EndIndex);
+                            @string = @string.Substring(column.EndIndex);
+                            newRow.AddValue(column.Name, value);
+                        }
+                        return newRow;
                     }
-                    return newRow;
+                    catch (Exception ex)
+                    {
+                        throw new ParseRowException($"Erro ao ler a linha '{s}'.\nOcorreram os seguintes erros:\n{ex.Message}", ex);
+                    }
                 }).Where(w => validators.All(a => a.IsValid(w) == ParseResult.Success));
+
         }
     }
 }

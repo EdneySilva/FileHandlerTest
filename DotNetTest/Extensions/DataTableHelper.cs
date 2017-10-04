@@ -18,11 +18,23 @@ namespace DotNetTest.Extensions
 
         public static Task<DataTable> FilterAsync(this DataTable dataSource, Func<DataRow, bool> filter, params string[] columnsToRemove)
         {
+            //return TryHelper.TryAsync(dataSource, (ctx) =>
+            //{
+            //    DataTable dt = dataSource.Clone();
+            //    dataSource.Rows.Cast<DataRow>().Where(filter).CopyToDataTable(dt, LoadOption.Upsert);
+            //    if (columnsToRemove?.Length == 0)
+            //        return dt;
+            //    foreach (var column in columnsToRemove)
+            //        dt.Columns.Remove(column);
+            //    return dt;
+
+            //});
+
             Task<DataTable> task = new Task<DataTable>(() =>
             {
                 DataTable dt = dataSource.Clone();
                 dataSource.Rows.Cast<DataRow>().Where(filter).CopyToDataTable(dt, LoadOption.Upsert);
-                if(columnsToRemove?.Length == 0)
+                if (columnsToRemove?.Length == 0)
                     return dt;
                 foreach (var column in columnsToRemove)
                     dt.Columns.Remove(column);

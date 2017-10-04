@@ -31,12 +31,19 @@ namespace DotNetTest.Data
             var columnString = HeaderLine.Substring(startIndex, endIndex);
             if (!name.Contains(columnString.Trim()))
                 throw new ColumnNotFound($"A coluna {name} não foi encontrada no arquivo");
-            HeaderLine = HeaderLine.Substring(endIndex);
-            Column column = new Column(name);
-            column.StartIndex = 0;
-            column.EndIndex = endIndex;
-            column.Index = Container.Count + 1;
-            Container.Add(name, column);
+            try
+            {
+                HeaderLine = HeaderLine.Substring(endIndex);
+                Column column = new Column(name);
+                column.StartIndex = 0;
+                column.EndIndex = endIndex;
+                column.Index = Container.Count + 1;
+                Container.Add(name, column);
+            }
+            catch (Exception ex)
+            {
+                throw new ParseColumnException($"Falha ao ler a coluna {name}.\nOs seguintes erros ocorreram:\n{ex.Message}", ex);
+            }
             return this;
         }
 
